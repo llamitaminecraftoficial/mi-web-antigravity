@@ -319,8 +319,8 @@ function initAIChat() {
         addMessage(text, 'user');
         input.value = '';
 
-        // Secure API Call via Netlify Proxy
-        const API_URL = '/api/chat';
+        // Direct call to Netlify Function (Bypasses potential redirect issues)
+        const API_URL = '/.netlify/functions/chat';
 
         // Add "Thinking" state
         const loadingDiv = document.createElement('div');
@@ -336,18 +336,23 @@ function initAIChat() {
                 body: JSON.stringify({ message: text })
             });
 
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Error del servidor: ${response.status}`);
+            }
+
             const data = await response.json();
             messagesContainer.removeChild(loadingDiv);
 
             if (data.response) {
                 addMessage(data.response, 'ai');
             } else {
-                throw new Error('Respuesta no válida del servidor');
+                throw new Error('Respuesta vacía de la IA');
             }
         } catch (error) {
             console.error("AI Error:", error);
             if (loadingDiv.parentNode) messagesContainer.removeChild(loadingDiv);
-            addMessage("Lo siento, no puedo conectarme en este momento. Si estás viendo esto en local, recuerda que el chat seguro solo funciona cuando despliegues en Netlify.", 'ai');
+            addMessage(`Lo siento, el sistema dice: "${error.message}". Revisa que hayas puesto bien la GEMINI_API_KEY en Netlify.`, 'ai');
         }
     }
 
