@@ -1,28 +1,15 @@
 /**
- * Netlify Function: AI Chat Proxy (Diagnostic & Resilient)
+ * Netlify Function: AI Chat Proxy (Final Fix)
+ * Uses the models identified by the diagnostic tool.
  */
 
 exports.handler = async (event) => {
-    // 1. Diagnostics: GET now lists available models to see what's wrong
     if (event.httpMethod === 'GET') {
         const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
-        if (!apiKey) return { statusCode: 500, body: JSON.stringify({ error: "Missing Key in Netlify" }) };
-
-        try {
-            // Check both v1 and v1beta
-            const responseV1 = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
-            const dataV1 = await responseV1.json();
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    status: "alive",
-                    available_models_v1: dataV1.models ? dataV1.models.map(m => m.name) : dataV1
-                })
-            };
-        } catch (err) {
-            return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
-        }
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ status: "alive", key_configured: !!apiKey })
+        };
     }
 
     if (event.httpMethod !== 'POST') {
@@ -31,55 +18,48 @@ exports.handler = async (event) => {
 
     try {
         const rawKey = process.env.GEMINI_API_KEY;
-        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY' }) };
+        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY en Netlify' }) };
         const apiKey = rawKey.trim();
 
         const body = JSON.parse(event.body);
-        const userMessage = body.message || "Hola";
+        const userMessage = body.message || "";
 
-        // Attempting with updated model strings based on latest docs
-        const configs = [
-            { ver: 'v1beta', mod: 'gemini-1.5-flash' },
-            { ver: 'v1', mod: 'gemini-1.5-flash' },
-            { ver: 'v1beta', mod: 'gemini-1.5-pro' }
-        ];
+        // Use gemini-2.0-flash as it was confirmed available in the diagnostic
+        const model = 'gemini-2.0-flash';
+        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
 
-        let lastError = "";
+        console.log(`Using model: ${model}`);
 
-        for (const config of configs) {
-            const url = `https://generativelanguage.googleapis.com/${config.ver}/models/${config.mod}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Sé conciso y profesional.` }]
+                }]
+            })
+        });
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userMessage }] }]
-                    })
-                });
+        const data = await response.json();
 
-                const data = await response.json();
-
-                if (response.ok && data.candidates) {
-                    return {
-                        statusCode: 200,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
-                    };
-                } else {
-                    lastError = data.error ? (data.error.message || JSON.stringify(data.error)) : JSON.stringify(data);
-                }
-            } catch (e) {
-                lastError = e.message;
-            }
+        if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+            return {
+                statusCode: 200,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
+            };
+        } else {
+            const errorMsg = data.error ? data.error.message : JSON.stringify(data);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: `Google Gemini Error: ${errorMsg}` })
+            };
         }
 
+    } catch (err) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: `No se pudo conectar con ningún modelo. Google dice: ${lastError}` })
+            body: JSON.stringify({ error: `Crash: ${err.message}` })
         };
-
-    } catch (err) {
-        return { statusCode: 500, body: JSON.stringify({ error: `Crash: ${err.message}` }) };
     }
 };
