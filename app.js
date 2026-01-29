@@ -343,13 +343,19 @@ function initAIChat() {
             if (response.ok && data.response) {
                 addMessage(data.response, 'ai');
             } else {
-                const errorDetail = data.error || 'Error desconocido';
-                throw new Error(errorDetail);
+                // Better error extraction
+                let errorMsg = 'Error de la IA';
+                if (data.error) {
+                    errorMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+                } else if (data.details && data.details.error) {
+                    errorMsg = data.details.error.message || JSON.stringify(data.details.error);
+                }
+                throw new Error(errorMsg);
             }
         } catch (error) {
             console.error("DEBUG - AI Error:", error);
             if (loadingDiv.parentNode) messagesContainer.removeChild(loadingDiv);
-            addMessage(`[System Error]: ${error.message}. Por favor, verifica tu GEMINI_API_KEY en el panel de Netlify.`, 'ai');
+            addMessage(`[Google AI Error]: ${error.message}`, 'ai');
         }
     }
 
