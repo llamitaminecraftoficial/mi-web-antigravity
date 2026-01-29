@@ -1,76 +1,77 @@
 /**
- * Netlify Function: AI Chat Proxy (Resilient Version)
+ * Netlify Function: AI Chat Proxy (Final Production Version)
  */
 
 exports.handler = async (event) => {
-    // 1. Diagnostics: Allow GET to test if function is live
+    // 1. Logging - This MUST show up in Netlify logs
+    console.log("--- CHAT FUNCTION START ---");
+    console.log("Method:", event.httpMethod);
+
+    // GET for testing
     if (event.httpMethod === 'GET') {
         return {
             statusCode: 200,
-            body: JSON.stringify({ status: "alive", message: "Chat function is ready for POST requests" })
+            body: JSON.stringify({ message: "Function is ONLINE", timestamp: new Date().toISOString() })
         };
     }
 
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+        return { statusCode: 405, body: 'Not Allowed' };
     }
-
-    console.log("Chat function POST received");
 
     try {
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error("CRITICAL: GEMINI_API_KEY is missing in Netlify environment variables.");
+            console.error("CRITICAL ERROR: GEMINI_API_KEY environment variable is Missing.");
             return {
                 statusCode: 500,
-                body: JSON.stringify({ error: 'Config Error: Missing API Key' })
+                body: JSON.stringify({ error: 'Missing API Key in Netlify settings' })
             };
         }
 
         const body = JSON.parse(event.body);
-        const userMessage = body.message || "";
+        const userMessage = body.message || "Hola";
 
-        console.log(`Calling Gemini API for message: ${userMessage.substring(0, 20)}...`);
+        console.log("Input Message:", userMessage);
 
         const model = 'gemini-1.5-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
+        // Standard fetch (Node 18+)
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Sé conciso.` }]
-                }],
-                generationConfig: {
-                    maxOutputTokens: 250,
-                    temperature: 0.7
-                }
+                    parts: [{ text: `Eres un experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Responde de forma muy breve.` }]
+                }]
             })
         });
 
-        console.log(`Gemini API Response Status: ${response.status}`);
         const data = await response.json();
+        console.log("Gemini Status:", response.status);
 
-        if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+        if (response.ok && data.candidates) {
+            const aiResponse = data.candidates[0].content.parts[0].text;
+            console.log("AI Response Sent successfully");
             return {
                 statusCode: 200,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
+                body: JSON.stringify({ response: aiResponse })
             };
         } else {
-            console.error("Gemini Error Payload:", JSON.stringify(data));
+            console.error("Gemini Error:", JSON.stringify(data));
             return {
                 statusCode: 500,
-                body: JSON.stringify({ error: 'AI Error', details: data })
+                body: JSON.stringify({ error: 'Error de la IA de Google', details: data })
             };
         }
 
     } catch (err) {
-        console.error("Function Crash:", err.message);
+        console.error("Fatal Error:", err.message);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Crash', message: err.message })
+            body: JSON.stringify({ error: 'Error interno del servidor', details: err.message })
         };
     }
 };
