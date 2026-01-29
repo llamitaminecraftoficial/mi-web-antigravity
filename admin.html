@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Lead Machine Pro</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css"> <!-- Base styles -->
+    <link rel="stylesheet" href="admin-styles.css"> <!-- Dashboard specific -->
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js for Geographic Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body class="dark-theme admin-body">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box glass-card">
+            <div class="logo">
+                <span class="gradient-text">LeadMachine</span><span class="pro-badge">PRO</span>
+            </div>
+            <h2>Acceso a Gestión Pro</h2>
+            <p>Introduce tus credenciales para administrar tu infraestructura de leads en tiempo real.</p>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Contraseña Maestra</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="admin-pass" placeholder="••••••••" required>
+                    </div>
+                    <span id="login-error" class="error-msg">Contraseña incorrecta</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Entrar al Sistema <i data-lucide="log-in"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Layout (Hidden initially) -->
+    <div id="dashboard-layout" class="dashboard-wrapper hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-card">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="gradient-text">LM</span><span class="pro-badge">PRO</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="overview">
+                    <i data-lucide="layout-dashboard"></i> <span>Resumen</span>
+                </button>
+                <button class="nav-item" data-view="leads">
+                    <i data-lucide="users"></i> <span>Leads</span>
+                </button>
+                <button class="nav-item" data-view="analytics">
+                    <i data-lucide="bar-chart-3"></i> <span>Analíticas</span>
+                </button>
+                <button class="nav-item" data-view="landings">
+                    <i data-lucide="window"></i> <span>Landings</span>
+                </button>
+                <button class="nav-item" data-view="templates">
+                    <i data-lucide="message-square"></i> <span>Plantillas</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="nav-item logout">
+                    <i data-lucide="log-out"></i> <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <header class="content-header">
+                <h1 id="view-title">Panel de Control General</h1>
+                <div class="header-actions">
+                    <span class="last-sync">Sincronizado hace 1 min</span>
+                    <button class="theme-toggle-btn btn-secondary btn-sm" title="Cambiar Tema">
+                        <i data-lucide="sun" class="sun-icon"></i>
+                        <i data-lucide="moon" class="moon-icon"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="refresh-data">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- View: Overview -->
+            <section id="view-overview" class="view-content active">
+                <div class="stats-grid">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon"><i data-lucide="database"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Total Leads</span>
+                            <h3 id="stat-total">0</h3>
+                            <span class="trend positive"><i data-lucide="trending-up"></i> +12%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon green"><i data-lucide="calendar-check"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Hoy</span>
+                            <h3 id="stat-today">0</h3>
+                            <span class="trend positive"><i data-lucide="trending-up"></i> +5</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon purple"><i data-lucide="target"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Conversión</span>
+                            <h3>12.4%</h3>
+                            <span class="trend neutral">Estable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="recent-leads glass-card">
+                        <h3>Últimos Leads</h3>
+                        <div id="recent-leads-list" class="mini-list">
+                            <!-- JS injected -->
+                        </div>
+                        <button class="btn btn-secondary btn-block btn-sm"
+                            onclick="document.querySelector('[data-view=leads]').click()">Ver todos</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Leads Table -->
+            <section id="view-leads" class="view-content hidden">
+                <div class="table-controls glass-card">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="lead-search" placeholder="Buscar lead...">
+                    </div>
+                    <div class="filter-actions">
+                        <input type="date" id="filter-date-from" class="btn-secondary" title="Desde">
+                        <input type="date" id="filter-date-to" class="btn-secondary" title="Hasta">
+                        <select id="filter-status" class="btn-secondary">
+                            <option value="">Todos los Estados</option>
+                            <option value="Nuevo">Nuevo</option>
+                            <option value="Contactado">Contactado</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Cerrado">Cerrado</option>
+                            <option value="Descartado">Descartado</option>
+                        </select>
+                        <button class="btn btn-secondary" id="export-csv">
+                            <i data-lucide="download"></i> Excel/CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container glass-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Servicio</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-table-body">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View: Analytics -->
+            <section id="view-analytics" class="view-content hidden">
+                <div class="analytics-grid">
+                    <div class="analytics-main glass-card">
+                        <h3>Distribución Geográfica de Leads</h3>
+                        <div id="lead-map" style="height: 400px; border-radius: 12px; margin-top: 1rem;"></div>
+                    </div>
+                    <div class="analytics-side">
+                        <div class="chart-container glass-card funnel-card">
+                            <h3>Estado de Embudo</h3>
+                            <div class="canvas-wrapper">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Landings -->
+            <section id="view-landings" class="view-content hidden">
+                <div class="landing-grid">
+                    <!-- Dynamic Content -->
+                </div>
+            </section>
+
+            <!-- View: Message Templates -->
+            <section id="view-templates" class="view-content hidden">
+                <div class="template-controls glass-card">
+                    <h3>Gestión de Plantillas</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showTemplateModal()">
+                        <i data-lucide="plus"></i> Nueva Plantilla
+                    </button>
+                </div>
+                <div id="templates-list" class="templates-grid">
+                    <!-- JS Injected -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Template Modal -->
+    <div id="template-modal" class="popup-overlay hidden">
+        <div class="modal glass-card">
+            <button class="close-modal" onclick="closeTemplateModal()"><i data-lucide="x"></i></button>
+            <div class="template-form">
+                <h2 id="template-modal-title">Nueva Plantilla</h2>
+                <div class="input-group">
+                    <label>Nombre de la Plantilla</label>
+                    <input type="text" id="tpl-name" placeholder="Ej: Bienvenida WhatsApp">
+                </div>
+                <div class="input-group">
+                    <label>Tipo</label>
+                    <select id="tpl-type">
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Email">Email</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Cuerpo del Mensaje</label>
+                    <textarea id="tpl-body" rows="6" placeholder="Usa {name} para personalizar..."></textarea>
+                    <p class="hint">Puedes usar etiquetas como {name}, {service}, {phone}.</p>
+                </div>
+                <button class="btn btn-primary btn-block" id="save-template-btn">Guardar Plantilla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Detail Modal -->
+    <div id="lead-modal" class="popup-overlay hidden">
+        <div class="modal glass-card">
+            <button class="close-modal" onclick="closeLeadModal()"><i data-lucide="x"></i></button>
+            <div id="modal-content">
+                <!-- JS injected -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="theme-manager.js"></script>
+    <script src="db.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

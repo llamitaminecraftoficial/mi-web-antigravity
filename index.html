@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Machine Pro | Plataforma de Gestión y Captación de Alto Nivel</title>
+    <meta name="description"
+        content="No entregues solo una web. Obtén una plataforma completa con panel de gestión privado para controlar tus leads en tiempo real con acciones instantáneas.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Lucide Icons (via CDN for simplicity) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dark-theme">
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Atmospheric Lights -->
+    <div class="atmosphere-layers">
+        <div class="light-beam light-beam-1"></div>
+        <div class="light-beam light-beam-2"></div>
+        <div class="light-beam light-beam-3"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <nav class="glass-nav">
+        <div class="container">
+            <div class="logo">
+                <span class="gradient-text">LeadMachine</span><span class="pro-badge">PRO</span>
+            </div>
+            <div class="nav-links">
+                <a href="#benefits">Beneficios</a>
+                <a href="#process">Proceso</a>
+                <button class="theme-toggle-btn btn-icon" title="Cambiar Tema">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero">
+            <div class="container">
+                <div class="hero-content" data-scroll>
+                    <h1 class="reveal-text">Gestiona tus Oportunidades con una <span class="gradient-text">Plataforma
+                            Pro</span> Integrada</h1>
+                    <p class="fade-in-up">No es solo una landing. Es tu centro de mando privado diseñado para captar,
+                        organizar y convertir leads en acciones inmediatas sin depender de Excels o archivos externos.
+                    </p>
+                    <div class="hero-actions fade-in-up">
+                        <a href="#leads-form" class="btn btn-primary btn-lg btn-3d">
+                            <span>Configurar mi Sistema</span>
+                            <i data-lucide="arrow-right"></i>
+                        </a>
+                        <a href="#process" class="btn btn-secondary btn-lg">
+                            Ver cómo funciona
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Value/Benefits Section -->
+        <section id="benefits" class="benefits">
+            <div class="container">
+                <div class="section-header text-center" data-scroll>
+                    <h2 class="gradient-text">Del Formulario al Control Total</h2>
+                    <p>Una solución integral que eleva la gestión de tu negocio a un nivel profesional.</p>
+                </div>
+                <div class="grid grid-3">
+                    <div class="tilt-card glass-card" data-scroll>
+                        <div class="icon-box"><i data-lucide="layout"></i></div>
+                        <h3>Panel Centralizado</h3>
+                        <p>Visualiza y gestiona cada oportunidad desde una Web App privada con estadísticas modernas y
+                            claras.</p>
+                    </div>
+                    <div class="tilt-card glass-card" data-scroll>
+                        <div class="icon-box"><i data-lucide="zap"></i></div>
+                        <h3>Acciones Inmediatas</h3>
+                        <p>Contacta por WhatsApp o llamada directa desde tu panel de leads. Convierte datos en ventas al
+                            instante.</p>
+                    </div>
+                    <div class="tilt-card glass-card" data-scroll>
+                        <div class="icon-box"><i data-lucide="bar-chart-3"></i></div>
+                        <h3>Control de Negocio</h3>
+                        <p>Organiza leads por estado y mide tu rendimiento con analíticas pro. Toma decisiones
+                            informadas hoy mismo.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Flow Section -->
+        <section id="process" class="process">
+            <div class="container">
+                <div class="section-header text-center" data-scroll>
+                    <h2 class="gradient-text">Un Flujo, mil Oportunidades</h2>
+                    <p>Diseñamos el camino perfecto desde el primer clic hasta la gestión final.</p>
+                </div>
+                <div class="process-steps">
+                    <div class="step" data-scroll>
+                        <div class="step-number">01</div>
+                        <div class="step-content">
+                            <h3>Captación de Alta Percepción</h3>
+                            <p>Interficies modernas que posicionan tu marca como líder tecnológico desde el inicio.</p>
+                        </div>
+                    </div>
+                    <div class="step" data-scroll>
+                        <div class="step-number">02</div>
+                        <div class="step-content">
+                            <h3>Gestión Integrada</h3>
+                            <p>Recibe cada lead directamente en tu Web App privada. Olvídate de los correos perdidos.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="step" data-scroll>
+                        <div class="step-number">03</div>
+                        <div class="step-content">
+                            <h3>Cierre en Tiempo Real</h3>
+                            <p>Utiliza herramientas de contacto directo y estados de seguimiento para no perder ninguna
+                                venta.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Intelligent Form Section -->
+        <section id="leads-form" class="leads-form-section">
+            <div class="container">
+                <div class="form-container glass-card" data-scroll>
+                    <div class="form-header">
+                        <h2>Activa tu Infraestructura Pro</h2>
+                        <p>Solicita acceso a tu propia plataforma de captación y panel de gestión integral.</p>
+                        <div class="progress-bar-container">
+                            <div id="form-progress" class="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <form id="lead-machine-form" class="progressive-form" action="https://formspree.io/f/xaqorpwb"
+                        method="POST">
+                        <!-- Step 1 -->
+                        <div class="form-step active" data-step="1">
+                            <div class="input-group">
+                                <label for="name">Nombre Completo</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="user"></i>
+                                    <input type="text" id="name" name="name" placeholder="Tu nombre..." required>
+                                </div>
+                                <span class="error-msg">Por favor, introduce tu nombre</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="business">Nombre de tu Negocio / Proyecto</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="briefcase"></i>
+                                    <input type="text" id="business" name="business" placeholder="Tu empresa..."
+                                        required>
+                                </div>
+                                <span class="error-msg">Necesitamos conocer tu negocio</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="phone">Teléfono de Contacto</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="phone"></i>
+                                    <input type="tel" id="phone" name="phone" placeholder="+34 600 000 000" required>
+                                </div>
+                                <span class="error-msg">Introduce un teléfono válido</span>
+                            </div>
+                            <div class="form-footer">
+                                <button type="button" class="btn btn-primary next-step">Continuar <i
+                                        data-lucide="chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="form-step" data-step="2">
+                            <div class="input-group">
+                                <label for="email">Email Corporativo</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="mail"></i>
+                                    <input type="email" id="email" name="email" placeholder="email@empresa.com"
+                                        required>
+                                </div>
+                                <span class="error-msg">Introduce un email válido</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="service">Servicio de Interés</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="layers"></i>
+                                    <select id="service" name="service" required>
+                                        <option value="" disabled selected>Selecciona una opción...</option>
+                                        <option value="consultoria">Consultoría Estratégica</option>
+                                        <option value="desarrollo">Desarrollo Tech</option>
+                                        <option value="marketing">Marketing Avanzado</option>
+                                        <option value="otro">Otro Servicio Elite</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-footer">
+                                <button type="button" class="btn btn-secondary prev-step"><i
+                                        data-lucide="chevron-left"></i> Volver</button>
+                                <button type="button" class="btn btn-primary next-step">Paso Final <i
+                                        data-lucide="chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="form-step" data-step="3">
+                            <div class="input-group">
+                                <label for="message">Cuéntanos tu Visión (Opcional)</label>
+                                <div class="input-wrapper">
+                                    <textarea id="message" name="message" rows="4"
+                                        placeholder="¿En qué podemos ayudarte?"></textarea>
+                                </div>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="terms" name="terms" required>
+                                <label for="terms">Acepto los términos de servicio y tratamiento de datos
+                                    premium.</label>
+                            </div>
+                            <div class="form-footer">
+                                <button type="button" class="btn btn-secondary prev-step"><i
+                                        data-lucide="chevron-left"></i> Volver</button>
+                                <button type="submit" class="btn btn-primary btn-submit">
+                                    <span class="btn-text">Activar Sistema Now</span>
+                                    <div class="loader"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Success State -->
+                    <div id="form-success" class="form-feedback hidden">
+                        <div class="icon-success"><i data-lucide="check-circle"></i></div>
+                        <h3>¡Sistema Activado con Éxito!</h3>
+                        <p>Hemos recibido tus datos. En unos segundos te redirigiremos para una atención inmediata.</p>
+                        <div class="redirect-timer">Conectando en <span id="timer">5</span>s...</div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="form-error" class="form-feedback hidden">
+                        <div class="icon-error" style="color: var(--accent); font-size: 4rem; margin-bottom: 1.5rem;">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <h3>Ha ocurrido un error</h3>
+                        <p>No hemos podido procesar tu solicitud. Por favor, inténtalo de nuevo.</p>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="window.location.reload()">Reintentar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="final-cta">
+            <div class="container text-center">
+                <div class="cta-content glass-card" data-scroll>
+                    <h2 class="gradient-text">Toma el Control Total de tus Leads</h2>
+                    <p>Un panel, todas tus oportunidades. Deja atrás los sistemas tradicionales y pásate a la gestión
+                        pro.</p>
+                    <a href="#leads-form" class="btn btn-primary btn-lg btn-3d">Obtener mi Plataforma</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <div class="logo">
+                        <span class="gradient-text">LeadMachine</span><span class="pro-badge">PRO</span>
+                    </div>
+                    <p>La plataforma definitiva para la gestión avanzada de leads.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegación</h4>
+                    <a href="#hero">Inicio</a>
+                    <a href="#benefits">Servicios</a>
+                    <a href="#leads-form">Contacto</a>
+                </div>
+                <div class="footer-social">
+                    <h4>Conecta</h4>
+                    <div class="social-icons">
+                        <a href="#"><i data-lucide="linkedin"></i></a>
+                        <a href="#"><i data-lucide="twitter"></i></a>
+                        <a href="#"><i data-lucide="instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Lead Machine Pro. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/34622103913" class="whatsapp-btn" target="_blank" aria-label="WhatsApp">
+        <div class="whatsapp-pulse"></div>
+        <i data-lucide="message-circle"></i>
+    </a>
+
+    <!-- Overlay Popups Container -->
+    <div id="popup-overlay" class="popup-overlay hidden">
+        <div id="exit-intent-popup" class="popup glass-card">
+            <button class="close-popup"><i data-lucide="x"></i></button>
+            <div class="popup-icon"><i data-lucide="alert-circle"></i></div>
+            <h3>¡Espera un momento!</h3>
+            <p>No te vayas sin descubrir cómo podemos automatizar tu captación hoy mismo.</p>
+            <button class="btn btn-primary show-form">Ver Detalles Gratis</button>
+        </div>
+
+        <div id="time-popup" class="popup glass-card hidden">
+            <button class="close-popup"><i data-lucide="x"></i></button>
+            <div class="popup-icon"><i data-lucide="gift"></i></div>
+            <h3>Oferta Exclusiva</h3>
+            <p>Por tiempo limitado, obtén un análisis gratuito de tu flujo de leads.</p>
+            <button class="btn btn-primary show-form">Aprovechar Ahora</button>
+        </div>
+    </div>
+
+    <!-- Persistent Floating 3D Chat -->
+    <div class="hero-visual sticky-chat">
+        <div class="floating-card glass-card" id="hero-floating-card">
+            <div class="card-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+            </div>
+            <div class="card-body chat-container">
+                <div id="ai-chat-messages" class="chat-messages">
+                    <div class="message ai">
+                        <p>¡Bienvenido a tu nueva infraestructura de negocio! Soy tu asistente de gestión. ¿Qué
+                            aspecto de tu panel de control te gustaría explorar hoy?</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="ai-chat-input" placeholder="Escribe un mensaje..." autocomplete="off">
+                    <button id="ai-chat-send" class="chat-send-btn">
+                        <i data-lucide="send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="theme-manager.js"></script>
+    <script src="db.js"></script>
+    <script src="bg.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
