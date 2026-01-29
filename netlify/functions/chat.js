@@ -1,15 +1,10 @@
 /**
- * Netlify Function: AI Chat Proxy (Final Fix)
- * Uses the models identified by the diagnostic tool.
+ * Netlify Function: AI Chat Proxy (Extreme Fallback Version)
  */
 
 exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
-        const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ status: "alive", key_configured: !!apiKey })
-        };
+        return { statusCode: 200, body: "Chat endpoint is online and waiting for POST requests." };
     }
 
     if (event.httpMethod !== 'POST') {
@@ -22,39 +17,59 @@ exports.handler = async (event) => {
         const apiKey = rawKey.trim();
 
         const body = JSON.parse(event.body);
-        const userMessage = body.message || "";
+        const userMessage = body.message || "Hola";
 
-        // Use gemini-2.0-flash as it was confirmed available in the diagnostic
-        const model = 'gemini-2.0-flash';
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+        // Strategy: Try the most stable models first, then fallbacks.
+        // We include both v1 and v1beta to cover all regional variations.
+        const configs = [
+            { ver: 'v1beta', mod: 'gemini-1.5-flash' }, // Most compatible
+            { ver: 'v1', mod: 'gemini-1.5-flash' },     // Stable 1.5
+            { ver: 'v1beta', mod: 'gemini-1.5-pro' },   // High quality
+            { ver: 'v1beta', mod: 'gemini-2.0-flash-lite' }, // Low quota requirement
+            { ver: 'v1beta', mod: 'gemini-1.0-pro' }    // Legacy stable
+        ];
 
-        console.log(`Using model: ${model}`);
+        let errors = [];
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Sé conciso y profesional.` }]
-                }]
-            })
-        });
+        for (const config of configs) {
+            const url = `https://generativelanguage.googleapis.com/${config.ver}/models/${config.mod}:generateContent?key=${apiKey}`;
 
-        const data = await response.json();
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Sé breve.` }]
+                        }]
+                    })
+                });
 
-        if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
-            return {
-                statusCode: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
-            };
-        } else {
-            const errorMsg = data.error ? data.error.message : JSON.stringify(data);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: `Google Gemini Error: ${errorMsg}` })
-            };
+                const data = await response.json();
+
+                if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                    return {
+                        statusCode: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
+                    };
+                } else {
+                    const msg = data.error ? data.error.message : "Error desconocido";
+                    errors.push(`${config.mod} (${config.ver}): ${msg}`);
+                }
+            } catch (e) {
+                errors.push(`${config.mod}: ${e.message}`);
+            }
         }
+
+        // Detailed error for the user to help debug
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: "Ningún modelo de Google respondió correctamente.",
+                details: errors.join(" | ")
+            })
+        };
 
     } catch (err) {
         return {
