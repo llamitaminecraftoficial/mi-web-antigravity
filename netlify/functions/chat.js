@@ -22,11 +22,11 @@ exports.handler = async (event) => {
         // Strategy: Try the most stable models first, then fallbacks.
         // We include both v1 and v1beta to cover all regional variations.
         const configs = [
-            { ver: 'v1beta', mod: 'gemini-1.5-flash' }, // Most compatible
-            { ver: 'v1', mod: 'gemini-1.5-flash' },     // Stable 1.5
-            { ver: 'v1beta', mod: 'gemini-1.5-pro' },   // High quality
-            { ver: 'v1beta', mod: 'gemini-2.0-flash-lite' }, // Low quota requirement
-            { ver: 'v1beta', mod: 'gemini-1.0-pro' }    // Legacy stable
+            { ver: 'v1beta', mod: 'gemini-2.0-flash-lite-001' }, // Specific available lite version
+            { ver: 'v1beta', mod: 'gemini-1.5-flash' },           // Most compatible fallback
+            { ver: 'v1', mod: 'gemini-1.5-flash' },               // Stable 1.5
+            { ver: 'v1beta', mod: 'gemini-2.0-flash' },          // The 2.0 version
+            { ver: 'v1beta', mod: 'gemini-pro' }                 // Legacy pro
         ];
 
         let errors = [];
