@@ -1,6 +1,6 @@
 /**
- * Netlify Function: AI Chat Proxy (Targeted Version)
- * Uses the exact models confirmed in the user's diagnostic check.
+ * Netlify Function: AI Chat Proxy (The "Try Everything" Edition)
+ * Tries every model confirmed by the user's diagnostic check.
  */
 
 exports.handler = async (event) => {
@@ -20,14 +20,14 @@ exports.handler = async (event) => {
         const body = JSON.parse(event.body);
         const userMessage = body.message || "Hola";
 
-        // Targeted models from your diagnostic list
+        // Every single model the diagnostic tool found in your account
         const configs = [
-            { ver: 'v1', mod: 'gemini-2.0-flash-lite-001' }, // Found in your list
-            { ver: 'v1beta', mod: 'gemini-2.0-flash-lite-001' },
-            { ver: 'v1', mod: 'gemini-2.0-flash' },          // Found in your list
-            { ver: 'v1beta', mod: 'gemini-2.0-flash' },
-            { ver: 'v1', mod: 'gemini-1.5-flash' },          // Standard fallback
-            { ver: 'v1beta', mod: 'gemini-1.5-flash' }
+            { ver: 'v1', mod: 'gemini-2.0-flash-lite-001' },
+            { ver: 'v1', mod: 'gemini-2.0-flash' },
+            { ver: 'v1', mod: 'gemini-2.5-flash' }, // As seen in your list
+            { ver: 'v1', mod: 'gemini-1.5-flash' }, // Just in case
+            { ver: 'v1beta', mod: 'gemini-1.5-flash' },
+            { ver: 'v1beta', mod: 'gemini-pro' }
         ];
 
         let errors = [];
@@ -41,9 +41,11 @@ exports.handler = async (event) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{ text: `Actúa como asistente: ${userMessage}` }]
+                            parts: [{ text: `Actúa como asistente experto: ${userMessage}` }]
                         }]
-                    })
+                    }),
+                    // Short timeout so we can try the next one quickly
+                    signal: AbortSignal.timeout(5000)
                 });
 
                 const data = await response.json();
@@ -56,19 +58,19 @@ exports.handler = async (event) => {
                     };
                 } else {
                     const msg = data.error ? data.error.message : "Error desconocido";
-                    errors.push(`${config.mod} (${config.ver}): ${msg}`);
+                    errors.push(`${config.mod}: ${msg}`);
                 }
             } catch (e) {
                 errors.push(`${config.mod}: ${e.message}`);
             }
         }
 
-        // Final response if all fail
+        // If we reach here, tell the user the hard truth about their Google Account
         return {
             statusCode: 500,
             body: JSON.stringify({
-                error: "Fallo de cuota o región en Google AI Studio.",
-                details: errors[0] // Show the first significant error
+                error: "Tu cuenta de Google tiene el límite en 0 para todos los modelos.",
+                details: errors.join(" | ")
             })
         };
 
