@@ -1,17 +1,12 @@
 /**
- * Netlify Function: AI Chat Proxy (Final Production Version)
+ * Netlify Function: AI Chat Proxy (Diagnostic Version)
  */
 
 exports.handler = async (event) => {
-    // 1. Logging - This MUST show up in Netlify logs
-    console.log("--- CHAT FUNCTION START ---");
-    console.log("Method:", event.httpMethod);
-
-    // GET for testing
     if (event.httpMethod === 'GET') {
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: "Function is ONLINE", timestamp: new Date().toISOString() })
+            body: JSON.stringify({ status: "alive", env: !!process.env.GEMINI_API_KEY })
         };
     }
 
@@ -22,56 +17,49 @@ exports.handler = async (event) => {
     try {
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error("CRITICAL ERROR: GEMINI_API_KEY environment variable is Missing.");
             return {
                 statusCode: 500,
-                body: JSON.stringify({ error: 'Missing API Key in Netlify settings' })
+                body: JSON.stringify({ error: 'Falta GEMINI_API_KEY en Netlify' })
             };
         }
 
         const body = JSON.parse(event.body);
-        const userMessage = body.message || "Hola";
-
-        console.log("Input Message:", userMessage);
+        const userMessage = body.message || "";
 
         const model = 'gemini-1.5-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-        // Standard fetch (Node 18+)
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: `Eres un experto de Lead Machine Pro. El usuario pregunta: ${userMessage}. Responde de forma muy breve.` }]
+                    parts: [{ text: `Responde como experto: ${userMessage}` }]
                 }]
             })
         });
 
         const data = await response.json();
-        console.log("Gemini Status:", response.status);
 
-        if (response.ok && data.candidates) {
-            const aiResponse = data.candidates[0].content.parts[0].text;
-            console.log("AI Response Sent successfully");
+        if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
             return {
                 statusCode: 200,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ response: aiResponse })
+                body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
             };
         } else {
-            console.error("Gemini Error:", JSON.stringify(data));
+            // RELAY THE EXACT ERROR FROM GOOGLE
+            const googleError = data.error ? data.error.message : JSON.stringify(data);
             return {
                 statusCode: 500,
-                body: JSON.stringify({ error: 'Error de la IA de Google', details: data })
+                body: JSON.stringify({ error: `Google dice: ${googleError}` })
             };
         }
 
     } catch (err) {
-        console.error("Fatal Error:", err.message);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error interno del servidor', details: err.message })
+            body: JSON.stringify({ error: `Crash: ${err.message}` })
         };
     }
 };
