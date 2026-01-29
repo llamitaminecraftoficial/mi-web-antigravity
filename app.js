@@ -319,8 +319,8 @@ function initAIChat() {
         addMessage(text, 'user');
         input.value = '';
 
-        // Netlify Function Endpoint
-        const API_URL = '/.netlify/functions/chat';
+        // Netlify Function Endpoint (v3.0)
+        const URL = '/.netlify/functions/chat';
 
         // Add "Thinking" state
         const loadingDiv = document.createElement('div');
@@ -330,7 +330,8 @@ function initAIChat() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         try {
-            const response = await fetch(API_URL, {
+            console.log("Sending request to:", URL);
+            const response = await fetch(URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
@@ -342,13 +343,13 @@ function initAIChat() {
             if (response.ok && data.response) {
                 addMessage(data.response, 'ai');
             } else {
-                const errorText = data.error || 'Error desconocido';
-                throw new Error(errorText);
+                const errorDetail = data.error || 'Error desconocido';
+                throw new Error(errorDetail);
             }
         } catch (error) {
-            console.error("AI Error:", error);
+            console.error("DEBUG - AI Error:", error);
             if (loadingDiv.parentNode) messagesContainer.removeChild(loadingDiv);
-            addMessage(`Error: ${error.message}. Si esto persiste, revisa los logs de Netlify.`, 'ai');
+            addMessage(`[System Error]: ${error.message}. Por favor, verifica tu GEMINI_API_KEY en el panel de Netlify.`, 'ai');
         }
     }
 
