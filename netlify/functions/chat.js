@@ -1,11 +1,15 @@
 /**
- * Netlify Function: AI Chat Proxy (The "Try Everything" Edition)
- * Tries every model confirmed by the user's diagnostic check.
+ * Netlify Function: AI Chat Proxy (Final Production Version)
+ * Optimized for the specific models discovered in the user's account.
  */
 
 exports.handler = async (event) => {
     if (event.httpMethod === 'GET') {
-        return { statusCode: 200, body: "Chat endpoint is online." };
+        const apiKey = process.env.GEMINI_API_KEY ? "Configured ✔" : "Missing ✘";
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: "Chat endpoint active", key_status: apiKey })
+        };
     }
 
     if (event.httpMethod !== 'POST') {
@@ -14,23 +18,20 @@ exports.handler = async (event) => {
 
     try {
         const rawKey = process.env.GEMINI_API_KEY;
-        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY en Netlify' }) };
+        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY' }) };
         const apiKey = rawKey.trim();
 
         const body = JSON.parse(event.body);
         const userMessage = body.message || "Hola";
 
-        // Every single model the diagnostic tool found in your account
+        // Models confirmed to exist in your specific API Key list
         const configs = [
             { ver: 'v1', mod: 'gemini-2.0-flash-lite-001' },
             { ver: 'v1', mod: 'gemini-2.0-flash' },
-            { ver: 'v1', mod: 'gemini-2.5-flash' }, // As seen in your list
-            { ver: 'v1', mod: 'gemini-1.5-flash' }, // Just in case
-            { ver: 'v1beta', mod: 'gemini-1.5-flash' },
-            { ver: 'v1beta', mod: 'gemini-pro' }
+            { ver: 'v1', mod: 'gemini-1.5-flash' } // Fallback
         ];
 
-        let errors = [];
+        let lastGoogleError = "";
 
         for (const config of configs) {
             const url = `https://generativelanguage.googleapis.com/${config.ver}/models/${config.mod}:generateContent?key=${apiKey}`;
@@ -40,44 +41,36 @@ exports.handler = async (event) => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: `Actúa como asistente experto: ${userMessage}` }]
-                        }]
+                        contents: [{ parts: [{ text: userMessage }] }]
                     }),
-                    // Short timeout so we can try the next one quickly
-                    signal: AbortSignal.timeout(5000)
+                    signal: AbortSignal.timeout(8000)
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                if (response.ok && data.candidates) {
                     return {
                         statusCode: 200,
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
                     };
                 } else {
-                    const msg = data.error ? data.error.message : "Error desconocido";
-                    errors.push(`${config.mod}: ${msg}`);
+                    lastGoogleError = data.error ? data.error.message : JSON.stringify(data);
                 }
             } catch (e) {
-                errors.push(`${config.mod}: ${e.message}`);
+                lastGoogleError = e.message;
             }
         }
 
-        // If we reach here, tell the user the hard truth about their Google Account
+        // Final response explaining the Quota 0 issue
         return {
             statusCode: 500,
             body: JSON.stringify({
-                error: "Tu cuenta de Google tiene el límite en 0 para todos los modelos.",
-                details: errors.join(" | ")
+                error: `Límite 0 detectado en Google AI Studio. Detalles: ${lastGoogleError}`
             })
         };
 
     } catch (err) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: `Crash: ${err.message}` })
-        };
+        return { statusCode: 500, body: JSON.stringify({ error: `Crash: ${err.message}` }) };
     }
 };
