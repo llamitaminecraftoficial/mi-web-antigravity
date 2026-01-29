@@ -1,13 +1,30 @@
 /**
- * Supabase Client Initialization
+ * Supabase Client Initialization (Secure Version)
+ * Fetches credentials from Netlify Functions to avoid hardcoded secrets.
  */
-const SUPABASE_URL = 'https://xvixktmnyhjqihorrfec.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_la-AT5nBUQWgFXHSMe0HVQ_4HfU04Bm';
 
-if (!window.supabase) {
-    console.error("Supabase script not loaded. Please include <script src=\"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2\"></script>");
-}
+window.SupabaseInit = (async () => {
+    try {
+        // Fetch config from our secure endpoint
+        const response = await fetch('/.netlify/functions/get-config');
+        const config = await response.json();
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+            throw new Error("Missing Supabase configuration in environment variables.");
+        }
 
-window.SupabaseClient = sb;
+        if (!window.supabase) {
+            throw new Error("Supabase script not loaded.");
+        }
+
+        const sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+        window.SupabaseClient = sb;
+        console.log("Supabase initialized successfully.");
+        return sb;
+
+    } catch (error) {
+        console.error("Supabase Initialization Error:", error.message);
+        // Fallback or warning for the user
+        return null;
+    }
+})();

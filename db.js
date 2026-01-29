@@ -7,6 +7,7 @@ const db = {
      * Save a new lead to Supabase
      */
     async saveLead(leadData) {
+        await window.SupabaseInit;
         const { data, error } = await window.SupabaseClient
             .from('leads')
             .insert([{
@@ -32,6 +33,7 @@ const db = {
      * Retrieve all leads from Supabase
      */
     async getLeads() {
+        await window.SupabaseInit;
         const { data, error } = await window.SupabaseClient
             .from('leads')
             .select('*')
@@ -48,6 +50,7 @@ const db = {
      * Update lead status or data in Supabase
      */
     async updateLead(id, updates) {
+        await window.SupabaseInit;
         const { data, error } = await window.SupabaseClient
             .from('leads')
             .update(updates)
@@ -65,6 +68,7 @@ const db = {
      * Delete a lead from Supabase
      */
     async deleteLead(id) {
+        await window.SupabaseInit;
         const { error } = await window.SupabaseClient
             .from('leads')
             .delete()
