@@ -149,37 +149,56 @@ function initFormLogic() {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Real Call to Formspree
+            console.log("Submitting form to Formspree...");
+            // 1. Submit to Formspree
             const response = await fetch(form.action, {
                 method: form.method,
                 body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Accept': 'application/json' }
             });
 
-            if (response.ok) {
-                // Save to shared DB for Dashboard
-                if (window.DB) {
-                    await window.DB.saveLead(data);
-                }
-
-                // UI Success state
-                submitBtn.classList.remove('loading');
-                form.classList.add('hidden');
-                successState.classList.remove('hidden');
-
-                simulateEmailFlow(data);
-                startSuccessAction(data);
-            } else {
-                throw new Error('Server responded with error');
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(`Formspree error: ${errData.error || response.statusText}`);
             }
+
+            console.log("Formspree success. Saving to Supabase...");
+
+            // 2. Save to Supabase (Database)
+            let supabaseSuccess = false;
+            if (window.DB) {
+                try {
+                    await window.DB.saveLead(data);
+                    supabaseSuccess = true;
+                    console.log("Supabase save success.");
+                } catch (sbError) {
+                    console.error("Supabase Save Error:", sbError.message);
+                    // We don't throw here so the user still sees success if Formspree worked
+                }
+            }
+
+            // 3. UI Success state
+            submitBtn.classList.remove('loading');
+            form.classList.add('hidden');
+            successState.classList.remove('hidden');
+
+            simulateEmailFlow(data);
+            startSuccessAction(data);
+
         } catch (error) {
-            console.error("Submission error:", error);
+            console.error("CRITICAL: Submission failed:", error.message);
             submitBtn.classList.remove('loading');
             submitBtn.disabled = false;
+
+            // Show the error state but keep the form hidden
             form.classList.add('hidden');
             errorState.classList.remove('hidden');
+
+            // Update the error message if possible
+            const errorText = errorState.querySelector('p');
+            if (errorText) {
+                errorText.innerHTML = `Lo sentimos, ha ocurrido un error técnico: <br><small>${error.message}</small><br>Por favor, inténtalo de nuevo o contacta por WhatsApp.`;
+            }
         }
     });
 }
