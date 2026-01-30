@@ -30,7 +30,11 @@ exports.handler = async (event) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. Responde de forma profesional, amable y concisa a: ${userMessage}` }]
+                    parts: [{
+                        text: `INSTRUCCIÓN DE SISTEMA: Eres el asistente experto de Lead Machine Pro. Tu misión es vender landing pages y CRM con web app. Si preguntan otra cosa, reconduce con amabilidad. Responde siempre en español de forma breve.
+
+                     USUARIO: ${userMessage}`
+                    }]
                 }]
             }),
             signal: AbortSignal.timeout(10000)
