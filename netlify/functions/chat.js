@@ -49,10 +49,17 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
             };
         } else {
-            const errorMsg = data.error ? data.error.message : "Error en la respuesta de Google.";
+            // Handle specific Google API errors (like 429 Quota)
+            const googleError = data.error || {};
+            const isQuotaError = googleError.code === 429 || (googleError.message && googleError.message.includes("quota"));
+
             return {
-                statusCode: 500,
-                body: JSON.stringify({ error: `La IA tuvo un problema técnico: ${errorMsg}` })
+                statusCode: isQuotaError ? 429 : 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    error: isQuotaError ? "QUOTA_EXHAUSTED" : googleError.message || "Error en la respuesta de Google.",
+                    raw: googleError.message
+                })
             };
         }
 

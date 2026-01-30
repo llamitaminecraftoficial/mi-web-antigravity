@@ -362,19 +362,19 @@ function initAIChat() {
             if (response.ok && data.response) {
                 addMessage(data.response, 'ai');
             } else {
-                // Better error extraction
-                let errorMsg = 'Error de la IA';
-                if (data.error) {
-                    errorMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
-                } else if (data.details && data.details.error) {
-                    errorMsg = data.details.error.message || JSON.stringify(data.details.error);
+                // Friendly error translation
+                let friendlyMsg = "Lo siento, el asistente está recibiendo muchas consultas en este momento. Por favor, espera unos segundos e inténtalo de nuevo.";
+
+                if (data.error !== "QUOTA_EXHAUSTED") {
+                    friendlyMsg = "He tenido un pequeño problema técnico al procesar tu mensaje. ¿Podrías repetirlo?";
                 }
-                throw new Error(errorMsg);
+
+                addMessage(friendlyMsg, 'ai');
             }
         } catch (error) {
             console.error("DEBUG - AI Error:", error);
             if (loadingDiv.parentNode) messagesContainer.removeChild(loadingDiv);
-            addMessage(`[Google AI Error]: ${error.message}`, 'ai');
+            addMessage("Parece que hay un retraso en la conexión. Por favor, inténtalo de nuevo en un momento.", 'ai');
         }
     }
 
