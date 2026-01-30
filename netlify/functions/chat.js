@@ -1,15 +1,12 @@
 /**
- * Netlify Function: AI Chat Proxy (Final Production Fix)
- * Uses the exact models confirmed in the user's account diagnostic.
+ * Netlify Function: AI Chat Proxy (Production Stable)
+ * Optimized for gemini-2.0-flash confirmed in user account.
  */
 
 exports.handler = async (event) => {
+    // Basic Health Check (Clean)
     if (event.httpMethod === 'GET') {
-        const apiKey = process.env.GEMINI_API_KEY ? "Configured" : "Missing";
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ status: "alive", key: apiKey, note: "Use POST to chat" })
-        };
+        return { statusCode: 200, body: "Chat Service Online" };
     }
 
     if (event.httpMethod !== 'POST') {
@@ -18,66 +15,47 @@ exports.handler = async (event) => {
 
     try {
         const rawKey = process.env.GEMINI_API_KEY;
-        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY en Netlify' }) };
+        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Configuración de IA incompleta.' }) };
         const apiKey = rawKey.trim();
 
         const body = JSON.parse(event.body);
-        const userMessage = body.message || "Hola";
+        const userMessage = body.message || "";
 
-        // Models specifically listed in your account diagnostic (Step Id: 1181)
-        const configs = [
-            { ver: 'v1', mod: 'gemini-2.0-flash' },      // Confirmed in your list
-            { ver: 'v1', mod: 'gemini-2.0-flash-lite' }, // Confirmed in your list
-            { ver: 'v1', mod: 'gemini-2.5-flash' },      // Confirmed in your list (Experimental)
-            { ver: 'v1beta', mod: 'gemini-1.5-flash' }   // Universal fallback
-        ];
+        // Use the model that we confirmed works for your account
+        const model = 'gemini-2.0-flash';
+        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
 
-        let lastDetail = "";
-
-        for (const config of configs) {
-            const url = `https://generativelanguage.googleapis.com/${config.ver}/models/${config.mod}:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: `Actúa como un asistente experto. Responde brevemente a: ${userMessage}` }]
-                        }]
-                    }),
-                    signal: AbortSignal.timeout(10000)
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
-                    return {
-                        statusCode: 200,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
-                    };
-                } else {
-                    lastDetail = data.error ? data.error.message : JSON.stringify(data);
-                    console.log(`Failed config ${config.mod}: ${lastDetail}`);
-                }
-            } catch (e) {
-                lastDetail = e.message;
-            }
-        }
-
-        return {
-            statusCode: 500,
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                error: `No se pudo conectar con los modelos de tu cuenta.`,
-                details: lastDetail
-            })
-        };
+                contents: [{
+                    parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. Responde de forma profesional, amable y concisa a: ${userMessage}` }]
+                }]
+            }),
+            signal: AbortSignal.timeout(10000)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+            return {
+                statusCode: 200,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
+            };
+        } else {
+            const errorMsg = data.error ? data.error.message : "Error en la respuesta de Google.";
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: `La IA tuvo un problema técnico: ${errorMsg}` })
+            };
+        }
 
     } catch (err) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: `Crash interno: ${err.message}` })
+            body: JSON.stringify({ error: `Error de conexión: ${err.message}` })
         };
     }
 };
