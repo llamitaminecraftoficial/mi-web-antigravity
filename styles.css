@@ -564,29 +564,86 @@ h3,
 }
 
 .tilt-card {
-    transition: transform 0.1s ease-out;
-    cursor: default;
+    position: relative;
+    transition: var(--transition-smooth);
+    cursor: pointer;
+    overflow: visible;
+    /* Important for popup visibility */
 }
 
-.icon-box {
-    width: 50px;
-    height: 50px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 12px;
+.tilt-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+}
+
+/* Benefit Popups (The WOW Factor) */
+.card-popup {
+    position: absolute;
+    bottom: calc(100% + 1.5rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px) scale(0.9);
+    width: 280px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+    z-index: 100;
+}
+
+.card-popup::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--primary);
+}
+
+.tilt-card:hover .card-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.popup-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.popup-features li {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+
+.popup-features li i {
     color: var(--primary);
-    margin-bottom: 1.5rem;
+    width: 16px;
+    height: 16px;
 }
 
-.tilt-card h3 {
+.popup-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
     margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
-
-.tilt-card p {
-    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Process Section */
