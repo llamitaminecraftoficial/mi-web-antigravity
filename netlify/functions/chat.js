@@ -1,37 +1,34 @@
 /**
- * Netlify Function: AI Chat Proxy (Final Production Version)
- * Optimized for the specific models discovered in the user's account.
+ * Netlify Function: AI Chat Proxy (Production Final)
+ * Optimized for performance with reliable fallback logic.
  */
 
 exports.handler = async (event) => {
+    // Health check
     if (event.httpMethod === 'GET') {
-        const apiKey = process.env.GEMINI_API_KEY ? "Configured ✔" : "Missing ✘";
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Chat endpoint active", key_status: apiKey })
-        };
+        return { statusCode: 200, body: "AI Chat Proxy is Online." };
     }
 
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Not Allowed' };
+        return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
     try {
         const rawKey = process.env.GEMINI_API_KEY;
-        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY' }) };
+        if (!rawKey) return { statusCode: 500, body: JSON.stringify({ error: 'Falta GEMINI_API_KEY en Netlify' }) };
         const apiKey = rawKey.trim();
 
         const body = JSON.parse(event.body);
         const userMessage = body.message || "Hola";
 
-        // Models confirmed to exist in your specific API Key list
+        // Try the most stable production configurations
         const configs = [
-            { ver: 'v1', mod: 'gemini-2.0-flash-lite-001' },
-            { ver: 'v1', mod: 'gemini-2.0-flash' },
-            { ver: 'v1', mod: 'gemini-1.5-flash' } // Fallback
+            { ver: 'v1', mod: 'gemini-1.5-flash' },
+            { ver: 'v1beta', mod: 'gemini-1.5-flash' },
+            { ver: 'v1', mod: 'gemini-1.5-pro' }
         ];
 
-        let lastGoogleError = "";
+        let lastError = "";
 
         for (const config of configs) {
             const url = `https://generativelanguage.googleapis.com/${config.ver}/models/${config.mod}:generateContent?key=${apiKey}`;
@@ -41,36 +38,38 @@ exports.handler = async (event) => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: userMessage }] }]
+                        contents: [{
+                            parts: [{ text: `Actúa como un asistente experto de Lead Machine Pro. Responde a: ${userMessage}. Sé profesional y conciso.` }]
+                        }]
                     }),
-                    signal: AbortSignal.timeout(8000)
+                    signal: AbortSignal.timeout(10000)
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.candidates) {
+                if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
                     return {
                         statusCode: 200,
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ response: data.candidates[0].content.parts[0].text })
                     };
                 } else {
-                    lastGoogleError = data.error ? data.error.message : JSON.stringify(data);
+                    lastError = data.error ? data.error.message : "Sin respuesta válida del modelo.";
                 }
             } catch (e) {
-                lastGoogleError = e.message;
+                lastError = e.message;
             }
         }
 
-        // Final response explaining the Quota 0 issue
         return {
             statusCode: 500,
-            body: JSON.stringify({
-                error: `Límite 0 detectado en Google AI Studio. Detalles: ${lastGoogleError}`
-            })
+            body: JSON.stringify({ error: `La IA no pudo responder: ${lastError}` })
         };
 
     } catch (err) {
-        return { statusCode: 500, body: JSON.stringify({ error: `Crash: ${err.message}` }) };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: `Error interno: ${err.message}` })
+        };
     }
 };
